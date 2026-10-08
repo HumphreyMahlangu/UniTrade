@@ -154,6 +154,140 @@ a {
   border-color: var(--color-border);
 }
 
+.btn-block {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: var(--space) 0;
+}
+
+/* ---------- Header navigation ---------- */
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.nav-cta {
+  background: var(--color-accent);
+  color: var(--color-primary-dark);
+}
+
+/* ---------- Forms (login / register) ---------- */
+.auth-page {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+}
+
+.field label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.field-control {
+  position: relative;
+}
+
+.field input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit; /* 16px+ text stops iOS Safari zooming into the field */
+  color: var(--color-text);
+}
+
+.field input.has-toggle {
+  padding-right: 64px; /* room for the Show/Hide button */
+}
+
+.field input:focus-visible,
+.field-toggle:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.field input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.field-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field-hint,
+.field-error {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.field-hint {
+  color: var(--color-muted);
+}
+
+.field-error,
+.form-error {
+  color: var(--color-danger);
+}
+
+.form-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-danger-bg);
+}
+
+.auth-switch {
+  text-align: center;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
 /* ---------- Loading / empty / error states ---------- */
 .state {
   display: flex;

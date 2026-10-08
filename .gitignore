@@ -32,3 +32,5 @@ frontend/test-results/
 
 # Local H2 quick-start database files (backend/data/)
 backend/data/
+# Production frontend config is NOT secret and is committed on purpose (API address for Vercel builds)
+!frontend/.env.production

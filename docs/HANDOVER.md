@@ -10,7 +10,7 @@ Read in this order: `CLAUDE.md` (rules, requirements, build order) → this file
 | Slice 0 — scaffolding | **Done.** Spring Boot API + React app, `GET /api/health`, MySQL verified, H2 for tests, evidence pipeline proven (6/6 tests, see EVIDENCE.md §2). CI green on GitHub. |
 | Slice 1 — FR1 Auth | **Next.** Not started. |
 | Slices 2–8 | Not started (see CLAUDE.md §6). |
-| Deployment | Frontend live on Vercel: https://uni-trade-eight.vercel.app. API (Render) and DB (Aiven): see DEPLOYMENT.md §1 for the current state. Container tested locally under Render's free limits. |
+| Deployment | Frontend live on Vercel: https://uni-trade-eight.vercel.app. API https://unitrade-cput-api.onrender.com and DB (Aiven): see DEPLOYMENT.md §1 for the current state. Container and production mode tested locally. |
 | Manual tests | M0-01…M0-04 in EVIDENCE.md §2.3 are `NOT RUN` (a person must run them and add screenshots). |
 
 ## 2. Set up on a new machine (about 15 minutes)
@@ -37,7 +37,9 @@ and stop with a summary. Do not run git add/commit/push unless I ask.
 - **UI designs:** Figma file https://www.figma.com/design/c3ea5kHwbYj3ZEBtGzSPte/Markplace (Page 1, 17 mobile frames at 440×956). 10 are exported in `docs/screens/`. Not yet exported: Search & Filters (`32:13`), Product Detail (`35:14`), My Listings (`42:580`), Order Confirmed (`64:63`), Bulletin Board (`66:255`), plus Vendor (`42:702`) and Chat (`78:350`), which are out of scope. The claude.ai Figma connector works, but its free (Starter) plan allows only about 10 calls before a limit, so prefer the PNGs; export missing frames manually in Figma (select the frame → Export → PNG) into `docs/screens/`.
 - **Design approach (D11):** keep the wireframes' screens and flows; polishing the visuals is approved (the wireframes are rough greyscale). Do **not** build: Google sign-in, "Forgot password", Student/Vendor toggle, Vendor screen, Notifications, Chat. These are logged as limitation L8 / L1 / L4.
 - **Versions (D4, D5):** Spring Boot 3.5.16 (Initializr only offers 4.x now; pom is hand-written). Frontend pinned to React 19, React Router 7, Vite 7, Vitest 4. Don't upgrade majors casually.
-- **Deployment (D7, D9, D10):** Vercel (frontend) + Render Docker free (API) + Aiven free MySQL. `render.yaml` recreates the API service; `scripts/check-deploy.mjs` verifies a deployment. JVM flag `-XX:TieredStopAtLevel=1` in the Dockerfile halves cold start at 0.1 CPU.
+- **Deployment (D7, D9, D10):** Vercel (frontend) + Render Docker free (API `unitrade-cput-api`) + Aiven free MySQL. `render.yaml` recreates the API service; `scripts/check-deploy.mjs` verifies a deployment. JVM flag `-XX:TieredStopAtLevel=1` in the Dockerfile halves cold start at 0.1 CPU.
+- **Configuration rule (D12) — important because you have no dashboard access:** the hosting dashboards hold only secrets, set once: `SPRING_PROFILES_ACTIVE=prod`, `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`. Every other deployed setting is in git: `backend/src/main/resources/application-prod.properties` (API) and `frontend/.env.production` (API address for the website). Change them by commit; the push redeploys. New settings: put a safe default in `application.properties` and the production value in `application-prod.properties`. Details: DEPLOYMENT.md §2.
+- **Slice 1 note:** `JWT_SECRET` already exists on Render (random, base64, 44 characters) and is mapped to `app.jwt.secret` in the prod profile. Read it from `app.jwt.secret`; derive the HMAC key from it (e.g. SHA-256 of its UTF-8 bytes) so any long string works; for local runs, if it is blank, generate a random key at start-up and log a warning (tokens then expire on restart).
 
 ## 5. Accounts and access
 
@@ -45,7 +47,7 @@ and stop with a summary. Do not run git add/commit/push unless I ask.
 |---|---|---|
 | GitHub repo `shibambocollins/UniTrade` (public) | Collins | To be added as collaborator (repo → Settings → Collaborators) to push |
 | Vercel project `uni-trade` | Collins's Vercel account | Nothing: every push to `main` redeploys automatically. Logs/settings: ask Collins |
-| Render service `unitrade-api` | Collins's Render account | Nothing once created: pushes touching `backend/` redeploy. Logs/settings: ask Collins |
+| Render service `unitrade-cput-api` | Collins's Render account | Nothing once created: pushes touching `backend/` redeploy. Logs/secrets: ask Collins, or for a revocable API key (DEPLOYMENT.md §7) |
 | Aiven MySQL | Collins's Aiven account | Nothing. If it was powered off for inactivity, Collins powers it on |
 | Figma file | Collins | View access via the link above |
 | Claude / Claude Code | shared account | New session per machine; this file replaces the old session's memory |
@@ -58,6 +60,7 @@ If the hosting must move to someone else's accounts, follow DEPLOYMENT.md §3 fr
 - **Port 8080 still in use** after stopping a background backend on Windows: `Get-NetTCPConnection -LocalPort 8080` → stop that `java` process.
 - **MySQL "Access denied (using password: YES)":** the DB user's password differs from the config; re-run the README SQL (it has `ALTER USER`) (DEF-03).
 - **API client rule (DEF-04):** a successful answer that is not JSON is treated as an error; backend endpoints must always return JSON or 204.
+- **Aiven MySQL requires a primary key on every table** (local MySQL does not): every entity needs an `@Id`; use a `Set` for `@ManyToMany` (composite key) or a join entity. Otherwise the deployed API fails at start-up while local runs work.
 - **Free hosting sleeps:** first request after 15 idle minutes takes ~1.5–3 min; warm up before demos.
 
 ## 7. Evidence rules (short version of CLAUDE.md §7)

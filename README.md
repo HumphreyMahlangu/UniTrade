@@ -93,9 +93,11 @@ node scripts/test-report.mjs                    # writes the results into docs/E
 | `DB_PASSWORD` | _(empty)_ | DB password (or use `application-local.properties`) |
 | `APP_CORS_ORIGINS` | `http://localhost:5173` | Comma-separated browser origins allowed to call the API |
 | `PORT` | `8080` | HTTP port (set automatically by Render) |
-| `VITE_API_URL` (frontend) | _(unset)_ | API base URL when the frontend is hosted separately (Vercel) |
+| `SPRING_PROFILES_ACTIVE` | _(unset)_ | `prod` on Render (uses `application-prod.properties`); `h2` for the no-MySQL quick start |
+| `JWT_SECRET` | _(unset)_ | Login-token signing key; required with `prod` |
+| `VITE_API_URL` (frontend) | _(unset locally)_ | API address for production builds; committed in `frontend/.env.production` |
 
-No secrets are stored in git.
+No secrets are stored in git. With the `prod` profile the API refuses to start if `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` or `JWT_SECRET` is missing, and names the missing one.
 
 ## 7. Demo logins
 _Added in Slice 1 (seed data)._
@@ -106,7 +108,7 @@ _Added in Slice 7._
 ## 9. Deployment (optional)
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Vercel frontend, Render backend, Aiven MySQL — all free tiers; current state, rebuild steps, troubleshooting). The Render service is described in [render.yaml](render.yaml). Check a deployment with:
 ```
-node scripts/check-deploy.mjs --web https://uni-trade-eight.vercel.app --api https://<render address>
+node scripts/check-deploy.mjs --web https://uni-trade-eight.vercel.app --api https://unitrade-cput-api.onrender.com
 ```
 Local HTTP is for development; the deployed site uses HTTPS.
 

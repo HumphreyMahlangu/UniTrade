@@ -1,0 +1,6 @@
+# Copy this file to "application-local.properties" (same folder, backend/) and fill in your values.
+# application-local.properties is git-ignored, so your password never reaches GitHub.
+# Environment variables (DB_URL, DB_USERNAME, DB_PASSWORD) work too and take priority.
+
+spring.datasource.username=unitrade
+spring.datasource.password=CHANGE-ME

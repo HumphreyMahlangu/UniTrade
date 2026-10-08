@@ -30,6 +30,8 @@ Open a MySQL prompt as root (Windows: `& "C:\Program Files\MySQL\MySQL Server 8.
 ```sql
 CREATE DATABASE IF NOT EXISTS unitrade CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'unitrade'@'localhost' IDENTIFIED BY 'choose-a-password';
+-- ALTER makes sure the password is set even if the user already existed
+ALTER USER 'unitrade'@'localhost' IDENTIFIED BY 'choose-a-password';
 GRANT ALL PRIVILEGES ON unitrade.* TO 'unitrade'@'localhost';
 FLUSH PRIVILEGES;
 ```
@@ -57,6 +59,14 @@ cd backend
 ```
 
 Check it: open <http://localhost:8080/api/health> → `{"status":"UP","database":"UP",...}`.
+
+**Troubleshooting**
+| Message at startup | Cause | Fix |
+|---|---|---|
+| `Access denied for user 'unitrade'@'localhost' (using password: YES)` | MySQL user missing, or its password differs from `application-local.properties` | Re-run the SQL in section 2 (the `ALTER USER` line resets the password) |
+| `Access denied ... (using password: NO)` | No password configured | Create `backend/application-local.properties` or set `DB_PASSWORD` |
+| `Communications link failure` | MySQL is not running | Start it (Windows: `services.msc` → MySQL80 → Start) |
+| `Port 8080 was already in use` | An earlier backend is still running | Stop it, or find it with `Get-NetTCPConnection -LocalPort 8080` |
 
 ## 4. Run the frontend (port 5173)
 ```powershell

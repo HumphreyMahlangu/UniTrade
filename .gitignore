@@ -1,0 +1,31 @@
+# Java / Maven / Gradle
+target/
+build/
+.gradle/
+*.class
+*.log
+hs_err_pid*
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Secrets and local config — never commit
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+*.pem
+*.key
+
+# IDEs / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Generated test output (EVIDENCE.md keeps the report; raw XML stays local)
+frontend/test-results/

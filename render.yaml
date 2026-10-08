@@ -1,0 +1,24 @@
+# Render Blueprint: describes the UniTrade API service so it can be recreated from this repo
+# (Render dashboard -> New -> Blueprint -> pick this repo). Secrets are NOT stored here:
+# entries with "sync: false" are typed into the Render dashboard when the Blueprint is created.
+# Paths below are relative to the repository root (Render's rule for dockerfilePath/dockerContext).
+services:
+  - type: web
+    name: unitrade-api
+    runtime: docker
+    plan: free
+    region: frankfurt          # closest Render region to South Africa; cannot be changed later
+    rootDir: backend           # only changes under backend/ trigger a redeploy
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: DB_URL            # jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED&serverTimezone=UTC
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: APP_CORS_ORIGINS  # the Vercel site address, no trailing slash
+        value: https://uni-trade-eight.vercel.app

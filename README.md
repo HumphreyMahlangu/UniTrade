@@ -104,7 +104,11 @@ _Added in Slice 1 (seed data)._
 _Added in Slice 7._
 
 ## 9. Deployment (optional)
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Vercel frontend, Render backend, Aiven MySQL — all free tiers). Local HTTP is for development; the deployed site uses HTTPS.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Vercel frontend, Render backend, Aiven MySQL — all free tiers; current state, rebuild steps, troubleshooting). The Render service is described in [render.yaml](render.yaml). Check a deployment with:
+```
+node scripts/check-deploy.mjs --web https://uni-trade-eight.vercel.app --api https://<render address>
+```
+Local HTTP is for development; the deployed site uses HTTPS.
 
 ## 10. Project structure
 ```

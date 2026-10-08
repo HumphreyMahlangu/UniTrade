@@ -10,13 +10,14 @@ function renderAt(path) {
   );
 }
 
+const jsonResponse = (body, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
 describe('Slice 0 - app shell', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('slice0_01 shows the API and database status from /api/health', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ status: 'UP', database: 'UP' }), { status: 200 }),
-    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ status: 'UP', database: 'UP' }));
     renderAt('/');
     expect(screen.getByRole('heading', { name: /welcome to unitrade/i })).toBeInTheDocument();
     expect(await screen.findByText(/database:/i)).toBeInTheDocument();
@@ -29,8 +30,20 @@ describe('Slice 0 - app shell', () => {
   });
 
   it('slice0_03 shows a not-found page for unknown routes', () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({}));
     renderAt('/does-not-exist');
     expect(screen.getByRole('heading', { name: /page not found/i })).toBeInTheDocument();
+  });
+
+  it('slice0_04 shows an error instead of loading forever when the answer is not from the API (HTML page)', async () => {
+    // What a static host returns for /api/* when VITE_API_URL is missing: status 200 with an HTML page
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('<!doctype html><title>UniTrade</title>', {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      }),
+    );
+    renderAt('/');
+    expect(await screen.findByRole('alert')).toHaveTextContent(/unexpected response/i);
   });
 });

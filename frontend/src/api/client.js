@@ -36,13 +36,19 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
     throw new ApiError(0, 'Cannot reach the UniTrade server. Check your connection and try again.');
   }
 
-  // 204 No Content has no body; other bodies may be empty or not JSON
-  const data = response.status === 204 ? null : await response.json().catch(() => null);
+  // The API always answers with JSON (or 204 No Content with no body)
+  const isJson = (response.headers.get('Content-Type') || '').includes('application/json');
+  const data = isJson ? await response.json().catch(() => null) : null;
 
   if (!response.ok) {
     const message =
       data?.message || FRIENDLY_MESSAGES[response.status] || 'Something went wrong. Please try again.';
     throw new ApiError(response.status, message, data?.fieldErrors ?? null);
+  }
+  // A "successful" answer that is not JSON did not come from the UniTrade API
+  // (e.g. a hosting page when VITE_API_URL is missing or wrong), so treat it as an error.
+  if (response.status !== 204 && !isJson) {
+    throw new ApiError(0, 'The UniTrade server sent an unexpected response. Please try again later.');
   }
   return data;
 }

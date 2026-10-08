@@ -1,0 +1,4 @@
+# Shell scripts must keep Unix line endings or they fail on Linux (GitHub Actions, Render).
+mvnw text eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf

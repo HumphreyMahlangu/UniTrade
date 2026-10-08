@@ -29,3 +29,6 @@ Thumbs.db
 
 # Generated test output (EVIDENCE.md keeps the report; raw XML stays local)
 frontend/test-results/
+
+# Local H2 quick-start database files (backend/data/)
+backend/data/

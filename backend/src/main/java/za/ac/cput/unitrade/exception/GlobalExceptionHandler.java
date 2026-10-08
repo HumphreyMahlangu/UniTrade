@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -39,6 +40,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
         log.warn("Data integrity violation on {}: {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "That action conflicts with existing data. Please refresh and try again.",
+                request.getRequestURI(), null);
+    }
+
+    /**
+     * Two requests changed the same row at the same moment (optimistic locking via the @Version column).
+     * The loser gets a 409 instead of silently overwriting the winner, e.g. two buyers paying for one listing.
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentChange(OptimisticLockingFailureException ex,
+                                                                HttpServletRequest request) {
+        log.warn("Concurrent change on {}: {}", request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.CONFLICT, "Someone else changed this at the same time. Please refresh and try again.",
                 request.getRequestURI(), null);
     }
 

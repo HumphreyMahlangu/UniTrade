@@ -8,7 +8,7 @@ Academic project for **PRM372S Project Management 3**, CPUT.
 - `docs/EVIDENCE.md` — test results, performance runs, architecture, decisions, limitations
 - `scripts/` — evidence scripts (test report, search load test)
 
-> **Status:** Slice 1 done (scaffolding + FR1 register/login). Features are added slice by slice; see `docs/EVIDENCE.md` section 1.
+> **Status:** Slice 6 done (FR1 to FR6: auth, listings, search, cart/orders/mock payment, reviews, bulletin board). Not yet built: Redis cache and load test (Slice 7), separate payment service (Slice 8). Features are added slice by slice; see `docs/EVIDENCE.md` section 1.
 
 ---
 
@@ -90,6 +90,13 @@ cd frontend; npm test -- --run;      cd ..     # Vitest + React Testing Library
 node scripts/test-report.mjs                    # writes the results into docs/EVIDENCE.md section 2
 ```
 
+**Whole-system smoke test** (backend must be running; it creates its own throw-away students and really buys, reviews and posts, so use a local database):
+```powershell
+node scripts/e2e-smoke.mjs                              # default http://localhost:8080
+node scripts/e2e-smoke.mjs --api http://localhost:8081  # if you started the API on another port
+```
+It prints one PASS/FAIL line per check (register, listings, search, payment, reviews, bulletin, error handling) and exits with code 1 if anything fails.
+
 ## 6. Configuration (environment variables)
 
 | Variable | Default | Purpose |
@@ -108,13 +115,15 @@ node scripts/test-report.mjs                    # writes the results into docs/E
 No secrets are stored in git. With the `prod` profile the API refuses to start if `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` or `JWT_SECRET` is missing, and names the missing one.
 
 ## 7. Demo logins
-Created automatically the first time the backend starts on an empty database. All three use the password `Password123!`.
+Created automatically the first time the backend starts (the students while the users table is empty, plus 15 demo listings while the listings table is empty). All three use the password `Password123!`.
 
 | Name | Email |
 |---|---|
 | Thabo Nkosi | `thabo@mycput.ac.za` |
 | Ayesha Daniels | `ayesha@mycput.ac.za` |
 | Lerato Mokoena | `lerato@mycput.ac.za` |
+
+**Test cards for the (simulated) payment:** `4242 4242 4242 4242` (or any other 12–19 digit number) is approved; `4000 0000 0000 0002` is always declined, which shows the failure path. No real money moves and card numbers are never stored.
 
 You can also register your own account with any `@mycput.ac.za` address (no email is sent: the app only checks that the address ends in `@mycput.ac.za`).
 These are demo accounts with a public password: do not reuse a real password anywhere in this app.

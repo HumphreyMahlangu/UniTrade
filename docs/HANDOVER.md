@@ -9,8 +9,13 @@ Read in this order: `CLAUDE.md` (rules, requirements, build order) → this file
 |---|---|
 | Slice 0 — scaffolding | **Done.** Spring Boot API + React app, `GET /api/health`, MySQL verified, H2 for tests, evidence pipeline proven (6/6 tests, see EVIDENCE.md §2). CI green on GitHub. |
 | Slice 1 — FR1 Auth | **Built and tested (2026-10-08).** 30/30 automated tests pass; verified against MySQL with curl. Waiting for Collins's commit and manual tests M1-01…M1-05. |
-| Slice 2 — FR2 Listings | **Next.** Not started. Deadline is 9 Oct 2026, so Tier 1 (Slices 2–5) comes before anything else. |
-| Slices 3–8 | Not started (see CLAUDE.md §6). |
+| Slice 2 — FR2 Listings | **Built and tested (2026-10-08).** 54/54 automated tests pass; verified against MySQL with curl. Waiting for Collins's commit and manual tests M2-01…M2-04. |
+| Slice 3 — FR3 Search/filter | **Built and tested (2026-10-08).** 72/72 automated tests pass; verified against MySQL. Waiting for Collins's commit and manual tests M3-01…M3-03. |
+| Slice 4 — FR4 Cart/checkout/payment | **Built and tested (2026-10-08).** 102/102 automated tests pass (incl. a two-thread race test with a mutation check); verified against MySQL. Waiting for Collins's commit and manual tests M4-01…M4-06. |
+| Slice 5 — FR6 Reviews | **Built and tested (2026-10-09).** 120/120 automated tests pass; demo seed now includes one completed order with a review. Waiting for Collins's commit and manual tests M5-01…M5-04. |
+| Slice 6 — FR5 Bulletin board | **Built and tested (2026-10-09).** 136/136 automated tests pass. Waiting for Collins's commit and manual tests M6-01…M6-03. |
+| Slice 7 — NFR2 Redis + load test | **Next.** Not started: needs the cache, the `perf` profile with 10,000 listings and two measured runs (EVIDENCE §3). Deadline is 9 Oct 2026. |
+| Slice 8 — separate payment service | Not started (stretch, only after Slice 7). |
 | Deployment | Frontend live on Vercel: https://uni-trade-eight.vercel.app. API https://unitrade-cput-api.onrender.com and DB (Aiven): see DEPLOYMENT.md §1 for the current state. Container and production mode tested locally. |
 | Manual tests | M0-01…M0-04 in EVIDENCE.md §2.3 are `NOT RUN` (a person must run them and add screenshots). |
 

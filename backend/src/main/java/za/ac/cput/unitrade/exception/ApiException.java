@@ -42,6 +42,11 @@ public class ApiException extends RuntimeException {
         return new ApiException(HttpStatus.NOT_FOUND, message, null);
     }
 
+    /** 402: the payment gateway refused the payment. */
+    public static ApiException paymentDeclined(String message) {
+        return new ApiException(HttpStatus.PAYMENT_REQUIRED, message, null);
+    }
+
     public static ApiException conflict(String message) {
         return new ApiException(HttpStatus.CONFLICT, message, null);
     }

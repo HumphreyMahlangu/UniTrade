@@ -40,7 +40,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // browser CORS pre-flight
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        // Later slices add their public read endpoints here (listings, bulletin board).
+                        // Browsing is public. "mine" must be listed first: it matches {id} too but needs a login.
+                        .requestMatchers(HttpMethod.GET, "/api/listings/mine").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bulletin", "/api/bulletin/{id}").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(unauthorized(objectMapper))

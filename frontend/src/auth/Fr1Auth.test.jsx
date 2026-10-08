@@ -7,6 +7,7 @@ const jsonResponse = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 const jane = { id: 1, fullName: 'Jane Dlamini', email: 'jane@mycput.ac.za', createdAt: '2026-10-08T10:00:00Z' };
+const noReviews = { seller: { id: 1, fullName: 'Jane Dlamini' }, averageRating: null, reviewCount: 0, reviews: [] };
 
 function renderAt(path) {
   return render(
@@ -20,7 +21,7 @@ function renderAt(path) {
 function mockApi(routes) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
     const handler = routes[url];
-    if (!handler) return jsonResponse({}, 200);
+    if (!handler) return jsonResponse({ status: 404, message: 'unmocked ' + url }, 404); // like a real server: JSON error
     return typeof handler === 'function' ? handler() : handler;
   });
 }
@@ -58,6 +59,8 @@ describe('FR1 - authentication screens', () => {
     await user.type(screen.getByLabelText(/^password/i), 'Password123!');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
+    await screen.findByRole('heading', { name: /welcome to unitrade/i }); // wait until the app has moved to the home page
+    await user.click(await screen.findByRole('button', { name: /menu/i })); // the logged-in menu holds "Log out"
     expect(await screen.findByRole('button', { name: /log out/i })).toBeInTheDocument();
     expect(localStorage.getItem('unitrade.token')).toBe('jwt-123');
     const [, options] = fetchMock.mock.calls.find(([url]) => url === '/api/auth/register');
@@ -104,7 +107,7 @@ describe('FR1 - authentication screens', () => {
   });
 
   it('fr1_06 a protected page sends a logged-out visitor to login, then returns them after login', async () => {
-    mockApi({ '/api/auth/login': jsonResponse({ token: 'jwt-123', user: jane }) });
+    mockApi({ '/api/auth/login': jsonResponse({ token: 'jwt-123', user: jane }), '/api/users/1/reviews': jsonResponse(noReviews) });
     const user = userEvent.setup();
     renderAt('/profile');
 
@@ -129,7 +132,7 @@ describe('FR1 - authentication screens', () => {
 
   it('fr1_08 a valid stored token restores the session after a refresh, and Log out clears it', async () => {
     localStorage.setItem('unitrade.token', 'good-token');
-    const fetchMock = mockApi({ '/api/auth/me': jsonResponse(jane) });
+    const fetchMock = mockApi({ '/api/auth/me': jsonResponse(jane), '/api/users/1/reviews': jsonResponse(noReviews) });
     const user = userEvent.setup();
     renderAt('/profile');
 
@@ -137,6 +140,7 @@ describe('FR1 - authentication screens', () => {
     const [, options] = fetchMock.mock.calls.find(([url]) => url === '/api/auth/me');
     expect(options.headers.Authorization).toBe('Bearer good-token');
 
+    await user.click(screen.getByRole('button', { name: /menu/i }));
     await user.click(screen.getByRole('button', { name: /log out/i }));
     expect(await screen.findByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
     expect(localStorage.getItem('unitrade.token')).toBeNull();

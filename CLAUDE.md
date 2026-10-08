@@ -1,5 +1,7 @@
 # UniTrade — Project Context (read this first, every session)
 
+> **Current status and handover:** read [`docs/HANDOVER.md`](docs/HANDOVER.md) next. It records what is done, what is next, decisions from earlier sessions, account ownership and known gotchas. A new person or machine continues from there; earlier Claude sessions are not available.
+
 ## 1. What this is
 - Academic project **PRM372S Project Management 3**, CPUT, Diploma in ICT. Product: **Community Store Mobile-First Marketplace** (repo: UniTrade).
 - I (Collins) am the only active developer (teammates are unresponsive). **Deadline: 9 Oct 2026.** Everything must be demoable and submit-ready by then.
@@ -42,7 +44,7 @@
 - Tests: JUnit 5 + MockMvc + H2 (test profile, cache disabled) for the backend; Vitest + React Testing Library for a few critical frontend components. **Name tests with the requirement ID**, e.g. method `fr1_01_registerRejectsNonStudentEmail`, class `Fr3SearchTest`, `nfr2_01_cacheEvictedWhenListingSold`. The report script groups results by that ID.
 
 ## 6. Build order (vertical slices) and what we try to finish
-Each slice = backend + UI + tests + evidence, then commit, then **stop and summarise** (what changed, what to check, what is not done).
+Each slice = backend + UI + tests + evidence, then the person commits (see section 9), then **stop and summarise** (what changed, what to check, what is not done).
 
 | Slice | Content | Tier |
 |---|---|---|
@@ -88,3 +90,4 @@ Read its header rules first. At the end of **every slice** update: Section 1 (tr
 - Don't add features beyond this file. If something cannot be done, say so plainly so it is reported as a limitation.
 - Don't claim a slice is done unless it runs and its tests pass.
 - Keep a `docs/screenshots/` folder; I take the screenshots. Do not generate fake ones.
+- Do not run `git add`, `git commit` or `git push` unless the person asks for it in that message. At the end of a slice, say it is ready to commit and suggest a message.

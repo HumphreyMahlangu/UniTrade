@@ -1,15 +1,17 @@
 # Deployment (free tiers)
 
 The marker runs the app locally (see README). The deployment is for the demo video and so problems surface early.
-Written so someone new can take over **without access to the hosting dashboards**.
+Written so the person taking over can finish the backend deployment with **their own free Render and Aiven accounts** (section 4, about 20 minutes), and change settings later by commit instead of through dashboards.
 
-## 1. Current state
+## 1. Current state (handover, 2026-10-08)
 
 | Part | Host | Status | Address |
 |---|---|---|---|
-| Frontend (React build) | **Vercel**, project `uni-trade` (Collins's account) | Live, redeploys on every push to `main` | https://uni-trade-eight.vercel.app |
-| Backend (Spring Boot) | **Render**, web service `unitrade-cput-api` (Docker, free; Collins's account) | Being created (2026-10-08); update this row when live | https://unitrade-cput-api.onrender.com |
-| Database (MySQL 8) | **Aiven**, free MySQL `unitrade-db` (Collins's account) | Being created (2026-10-08) | (secret, only in Render) |
+| Frontend (React build) | **Vercel**, project `uni-trade` (Collins's account) | **Live**, redeploys on every push to `main`. Nothing to do. | https://uni-trade-eight.vercel.app |
+| Backend (Spring Boot) | **Render**, web service `unitrade-cput-api` (Docker, free) | **Not created — to do by the person taking over** (section 4). Use exactly this name so the address matches `frontend/.env.production`. | https://unitrade-cput-api.onrender.com (after creation) |
+| Database (MySQL 8.4) | **Aiven**, free MySQL | **To do by the person taking over** (section 4.B). Collins created a test one on 2026-10-08 and the production-mode API connected to it from the dev PC (MySQL 8.4.11, TLS, `sql_require_primary_key=1`), so this setup is known to work. | (connection details only in Render) |
+
+When the backend is live: update this table, run the check in section 5, and record the result as manual test M0-04 in `docs/EVIDENCE.md`.
 
 ```mermaid
 flowchart LR
@@ -24,13 +26,13 @@ flowchart LR
 
 | Setting | Where it lives | How to change it |
 |---|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (secrets) | Render → service → Environment, **set once** at creation | Only if the database or secret is replaced (Collins) |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (secrets) | Render → service → Environment, **set once** at creation | Only if the database or secret is replaced (Render account owner) |
 | `SPRING_PROFILES_ACTIVE=prod` | Render → Environment, set once | Never |
 | Everything else for the deployed API (allowed frontend address, pool size, future settings) | [`backend/src/main/resources/application-prod.properties`](../backend/src/main/resources/application-prod.properties) — **in git** | Edit and push → Render redeploys |
 | Address of the API used by the website | [`frontend/.env.production`](../frontend/.env.production) — **in git** | Edit and push → Vercel redeploys |
 | Vercel dashboard settings | Root Directory `frontend`, preset Vite (no environment variables needed) | Never |
 
-So future slices never need dashboard access: new non-secret settings go in `application-prod.properties` (with safe defaults in `application.properties` for local runs). Only add a new *secret* if unavoidable — it needs Collins (or a token, section 7).
+So future slices never need dashboard access: new non-secret settings go in `application-prod.properties` (with safe defaults in `application.properties` for local runs). Only add a new *secret* if unavoidable — it needs the Render account owner (or a token, section 7).
 If a secret is missing, the API refuses to start and its log says exactly which one (tested: `nfr1_02`).
 
 ## 3. Free-tier facts that affect the demo (checked 2026-10-08)
@@ -45,9 +47,11 @@ Order: **A** Render account → **B** Aiven database → **C** Render service (n
 Vercel needs nothing more: `frontend/.env.production` already points at `https://unitrade-cput-api.onrender.com`.
 
 ### 4.A Render account and GitHub access (~3 min)
-1. https://render.com → **Get Started** → **GitHub** → sign in as the repo owner (`shibambocollins`).
-2. Give Render access to the repo: accept the GitHub prompt (**Only select repositories** → `UniTrade`), or later via https://github.com/apps/render/installations/new.
-3. No card needed. Stop here until the database exists.
+1. https://render.com → **Get Started** → **GitHub** → sign in with your own GitHub account (you must be a collaborator on `shibambocollins/UniTrade`).
+2. In **New → Web Service**, check that `shibambocollins/UniTrade` is listed under Git Provider. If it is not:
+   - only the repo owner can grant Render access to a personal repo: ask Collins to open https://github.com/apps/render/installations/new → his account → **Only select repositories** → `UniTrade` → Install/Save; or
+   - the repo is public, so you can use the **Public Git Repository** tab with `https://github.com/shibambocollins/UniTrade`. Automatic deploys may then not be available; after each push use **Manual Deploy → Deploy latest commit**.
+3. No card needed. Create the database (4.B) before the service, because Render asks for its values.
 
 ### 4.B Database — Aiven (~5 min)
 1. https://aiven.io → **Get started for free** → sign up (GitHub works). Name the organization/project `unitrade` if asked.
@@ -77,11 +81,17 @@ Vercel needs nothing more: `frontend/.env.production` already points at `https:/
 | `DB_URL` | `jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED&serverTimezone=UTC` (Host and Port from 4.B) |
 | `DB_USERNAME` | `avnadmin` |
 | `DB_PASSWORD` | the Aiven password |
-| `JWT_SECRET` | a random value: in PowerShell run the line below, then paste (Ctrl+V). It is copied to the clipboard and never shown. |
+| `JWT_SECRET` | click **Generate** next to the value field (Render creates a random value). Without that button, run the PowerShell line below and paste (Ctrl+V); it is copied to the clipboard and never shown. |
 
 ```powershell
 $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b) | Set-Clipboard
 ```
+
+**Common mistakes on this form (all made once on 2026-10-08):**
+- `DB_URL` set to Aiven's **Service URI** (`mysql://avnadmin:PASSWORD@host:port/defaultdb?ssl-mode=REQUIRED`). Wrong: Java needs the `jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED&serverTimezone=UTC` form, with no user or password inside.
+- `DB_USERNAME` set to `defaultdb`. That is the database name; the user is `avnadmin`.
+- **Dockerfile Path** left as `.` (shows `backend/ .`). It must be `./Dockerfile`; `.` is a folder and the build fails.
+- A screenshot or chat message showing the Aiven password. If that happens, reset it in Aiven (↻ next to Password) and paste the new one into `DB_PASSWORD`.
 
 **Advanced:**
 
@@ -93,7 +103,7 @@ $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create
 | Auto-Deploy | **On Commit** |
 | Docker Command, Pre-Deploy Command, Secret Files, Disk, Registry Credential, Build Filters | leave empty |
 
-**Deploy Web Service** → open **Logs**: build ~5 min, then `Started UnitradeApplication` (~1.5 min) and "Your service is live". Open https://unitrade-cput-api.onrender.com/api/health → `{"status":"UP","database":"UP",...}`.
+**Deploy Web Service** → open **Logs**: build ~5 min, then `Started UnitradeApplication` (~1.5 min) and "Your service is live". Open https://unitrade-cput-api.onrender.com/api/health → `{"status":"UP","database":"UP",...}`. Then run section 5 and update section 1.
 
 *Alternative:* **New → Blueprint** → **Connect** `UniTrade` → name `unitrade`, branch `main` → fill `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` (`JWT_SECRET` is generated automatically) → **Deploy Blueprint**. [`render.yaml`](../render.yaml) holds the same settings as the table above.
 
@@ -112,11 +122,11 @@ Verified on 2026-10-08 against a local copy of the same setup: all 6 checks pass
 - After pushing: CI status on GitHub (Actions tab), then `scripts/check-deploy.mjs` (section 5) once Render has redeployed (~7 min).
 
 ## 7. If someone else needs to see logs or change a secret
-The accounts belong to Collins. Without sharing passwords, he can give the next person **revocable tokens**, sent privately (never in git or a chat with Claude):
+The Vercel account belongs to Collins; the Render and Aiven accounts belong to whoever creates them in section 4. Without sharing passwords, an account owner can give another person **revocable tokens**, sent privately (never in git or a chat with Claude):
 - **Render:** Account Settings → **API Keys** → Create. With it, Claude Code can read logs, change environment variables and trigger deploys through Render's API (no plugin needed).
 - **Vercel:** Account Settings → **Tokens** → Create (scope: the `uni-trade` project's team). Usable with `npx vercel --token ...`.
 - Store a token in a file outside the repo (e.g. `C:\Users\<you>\unitrade-deploy\render-key.txt`) and tell Claude the path, not the value.
-Collins can delete the tokens after the project is handed in.
+The owner can delete the tokens after the project is handed in.
 
 ## 8. Troubleshooting
 | Symptom | Likely cause | Fix |
@@ -126,6 +136,7 @@ Collins can delete the tokens after the project is handed in.
 | Browser console: "blocked by CORS policy" | Site address not in `app.cors.allowed-origins` | Edit `application-prod.properties` and push |
 | Render log: `missing environment variable(s) [...]` | A secret was not set | Add it in Render → Environment (section 4.C) |
 | `/api/health` shows `"database":"DOWN"`, or log `Communications link failure` | Aiven service powered off, or wrong `DB_URL` | Power on in Aiven; `DB_URL` must include `sslMode=REQUIRED` |
-| Render log: `Access denied for user` | Wrong `DB_USERNAME`/`DB_PASSWORD` | Copy them again from Aiven |
+| Render log: `Access denied for user` | Wrong `DB_USERNAME`/`DB_PASSWORD` (the user is `avnadmin`, not the database name) | Copy them again from Aiven |
+| Render log mentions the URL / `No suitable driver` | `DB_URL` was set to Aiven's **Service URI** (`mysql://avnadmin:...@host...`) | Use the JDBC form `jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED&serverTimezone=UTC` (no user/password inside) |
 | Render log: `Unable to create or change a table without a primary key` | An entity/join table without a primary key (Aiven rule) | Add an `@Id` / use a `Set` for `@ManyToMany` |
 | Render deploy fails during build | Backend doesn't compile or Dockerfile changed | Run the local `docker build` (section 6) to see the error |

@@ -38,14 +38,23 @@ Then build Slice 1 (FR1 Auth) as described in CLAUDE.md, using the designs in do
 and stop with a summary. Do not run git add/commit/push unless I ask.
 ```
 
+To deploy the backend (any time; it does not depend on Slice 1), paste:
+
+```
+Read docs/DEPLOYMENT.md. I am creating the Render web service and the Aiven MySQL database
+with my own free accounts. Guide me field by field through sections 4.A-4.C, check my values
+(I will describe them or share screenshots without passwords), then run scripts/check-deploy.mjs
+against the live site and update DEPLOYMENT.md section 1 and EVIDENCE.md (manual test M0-04).
+```
+
 ## 4. Decisions made in the first session (also in EVIDENCE.md §9)
 - **Git:** the person commits and pushes; Claude does not run `git add/commit/push` unless asked in that message. Commit once per finished slice (EVIDENCE.md §11 uses the timestamps).
 - **UI designs:** Figma file https://www.figma.com/design/c3ea5kHwbYj3ZEBtGzSPte/Markplace (Page 1, 17 mobile frames at 440×956). 10 are exported in `docs/screens/`. Not yet exported: Search & Filters (`32:13`), Product Detail (`35:14`), My Listings (`42:580`), Order Confirmed (`64:63`), Bulletin Board (`66:255`), plus Vendor (`42:702`) and Chat (`78:350`), which are out of scope. The claude.ai Figma connector works, but its free (Starter) plan allows only about 10 calls before a limit, so prefer the PNGs; export missing frames manually in Figma (select the frame → Export → PNG) into `docs/screens/`.
 - **Design approach (D11):** keep the wireframes' screens and flows; polishing the visuals is approved (the wireframes are rough greyscale). Do **not** build: Google sign-in, "Forgot password", Student/Vendor toggle, Vendor screen, Notifications, Chat. These are logged as limitation L8 / L1 / L4.
 - **Versions (D4, D5):** Spring Boot 3.5.16 (Initializr only offers 4.x now; pom is hand-written). Frontend pinned to React 19, React Router 7, Vite 7, Vitest 4. Don't upgrade majors casually.
 - **Deployment (D7, D9, D10):** Vercel (frontend) + Render Docker free (API `unitrade-cput-api`) + Aiven free MySQL. `render.yaml` recreates the API service; `scripts/check-deploy.mjs` verifies a deployment. JVM flag `-XX:TieredStopAtLevel=1` in the Dockerfile halves cold start at 0.1 CPU.
-- **Configuration rule (D12) — important because you have no dashboard access:** the hosting dashboards hold only secrets, set once: `SPRING_PROFILES_ACTIVE=prod`, `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`. Every other deployed setting is in git: `backend/src/main/resources/application-prod.properties` (API) and `frontend/.env.production` (API address for the website). Change them by commit; the push redeploys. New settings: put a safe default in `application.properties` and the production value in `application-prod.properties`. Details: DEPLOYMENT.md §2.
-- **Slice 1 note:** `JWT_SECRET` already exists on Render (random, base64, 44 characters) and is mapped to `app.jwt.secret` in the prod profile. Read it from `app.jwt.secret`; derive the HMAC key from it (e.g. SHA-256 of its UTF-8 bytes) so any long string works; for local runs, if it is blank, generate a random key at start-up and log a warning (tokens then expire on restart).
+- **Configuration rule (D12) — important because the Vercel account is not yours:** the hosting dashboards hold only secrets, set once: `SPRING_PROFILES_ACTIVE=prod`, `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`. Every other deployed setting is in git: `backend/src/main/resources/application-prod.properties` (API) and `frontend/.env.production` (API address for the website). Change them by commit; the push redeploys. New settings: put a safe default in `application.properties` and the production value in `application-prod.properties`. Details: DEPLOYMENT.md §2.
+- **Slice 1 note:** `JWT_SECRET` is one of the five Render variables (create it with Render's **Generate** button when you create the service) and is mapped to `app.jwt.secret` in the prod profile. Read it from `app.jwt.secret`; derive the HMAC key from it (e.g. SHA-256 of its UTF-8 bytes) so any long string works; for local runs, if it is blank, generate a random key at start-up and log a warning (tokens then expire on restart).
 
 ## 5. Accounts and access
 
@@ -53,8 +62,8 @@ and stop with a summary. Do not run git add/commit/push unless I ask.
 |---|---|---|
 | GitHub repo `shibambocollins/UniTrade` (public) | Collins | To be added as collaborator (repo → Settings → Collaborators) to push |
 | Vercel project `uni-trade` | Collins's Vercel account | Nothing: every push to `main` redeploys automatically. Logs/settings: ask Collins |
-| Render service `unitrade-cput-api` | Collins's Render account | Nothing once created: pushes touching `backend/` redeploy. Logs/secrets: ask Collins, or for a revocable API key (DEPLOYMENT.md §7) |
-| Aiven MySQL | Collins's Aiven account | Nothing. If it was powered off for inactivity, Collins powers it on |
+| Render service `unitrade-cput-api` | **You** — create a free Render account (sign in with GitHub) | Create the service once (DEPLOYMENT.md §4.C). If the repo isn't listed in Render, Collins must allow the Render GitHub app on it (§4.A) |
+| Aiven MySQL | **You** — create a free Aiven account | Create the database once (DEPLOYMENT.md §4.B). If it is powered off after a quiet period, power it on in the Aiven console |
 | Figma file | Collins | View access via the link above |
 | Claude / Claude Code | shared account | New session per machine; this file replaces the old session's memory |
 
